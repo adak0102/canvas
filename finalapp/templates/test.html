@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+	<div id="chartContainer" style="height: 300px; width: 600px;">
+	</div>
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script src="http://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script type="text/javascript">
+	window.onload = function () {
+         var dps = [];   //dataPoints.
+         var chart;
+         var xVal;
+         var updateInterval = 2000;
+        $.getJSON("http://localhost:8000/dgdata/?type=initial", function(data) {
+            $.each(data, function(key, value){
+                dps.push({ x : new Date(value.x), y: value.y});
+            });
+            chart = new CanvasJS.Chart("chartContainer",{
+      	        title :{
+      	            fontColor: "blue",
+      	            fontSize: 30,
+      		        text: "센서데이터"
+      	        },
+      	        subtitles: [{
+    	            text: "온도 센서값",
+    	            fontColor: "blue",
+    	            fontSize: 20,
+                }],
+      	        axisX: {
+      		        title: "시간(초단위)"
+      	        },
+      	        axisY: {
+      		        title: "센서값"
+      	        },
+      	        data: [{
+      		        type: "line", // "spline"
+      		        color: "blue",
+      		        dataPoints : dps
+      	        }]
+            });
+            chart.render();
+            xVal = dps.length + 1;
+            setInterval(updateChart, updateInterval);
+         });
+         var updateChart = function () {
+               $.getJSON("http://localhost:8000/dgdata/?type=one", function(data) {
+                    $.each(data, function(key, value){
+                        dps.push({ x: new Date(value.x), y: value.y });
+                    });
+                });
+               	xVal++;
+   	            if (dps.length >  10 )  {
+   		            dps.shift();
+   	            }
+              	chart.render();
+         };
+    }
+</script>
+</body>
+</html>
